@@ -19,4 +19,11 @@ add_executable(decrypt 4-3/crypt.cpp 4-3/cryptFunctions.cpp)
 
 add_executable(crypt_tests 4-3/tests/cryptTest.cpp 4-3/cryptFunctions.cpp)
 
+add_executable(fillOut 5-3/fillOut.cpp 5-3/fill.cpp)
+add_executable(fillTests 5-3/tests/fillTests.cpp 5-3/fill.cpp)
+
+
+
+
 target_link_libraries(crypt_tests gtest_main)
+target_link_libraries(fillTests gtest_main)
