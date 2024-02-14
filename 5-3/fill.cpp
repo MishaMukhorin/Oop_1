@@ -31,6 +31,7 @@ bool ReadInputFile(const char *fileName, map& image)
         image[row][col] = char(symbol);
         col++;
     }
+    fclose(inputFile);
     return true;
 }
 
@@ -55,25 +56,25 @@ bool WriteOutputFile(const string& filename, const map& image)
 
 void FillContour(map& image, int row, int col)
 {
-    stack<pair<int, int>> executionStack;
+    queue<pair<int, int>> drawingQueue;
 
-    if (row > 0) executionStack.emplace(row - 1, col);
-    if (row < MAX_SIZE - 1) executionStack.emplace(row + 1, col);
-    if (col > 0) executionStack.emplace(row, col - 1);
-    if (col < MAX_SIZE - 1) executionStack.emplace(row, col + 1);
+    if (row > 0) drawingQueue.emplace(row - 1, col);
+    if (row < MAX_SIZE - 1) drawingQueue.emplace(row + 1, col);
+    if (col > 0) drawingQueue.emplace(row, col - 1);
+    if (col < MAX_SIZE - 1) drawingQueue.emplace(row, col + 1);
 
-    while (!executionStack.empty())
+    while (!drawingQueue.empty())
     {
-        auto [currRow, currCol] = executionStack.top();
+        auto [currRow, currCol] = drawingQueue.front();
 
-        executionStack.pop();
+        drawingQueue.pop();
         if (image[currRow][currCol] == EMPTY_CELL)
         {
             image[currRow][currCol] = FILLED_CELL;
-            if (currRow > 0) executionStack.emplace(currRow - 1, currCol);
-            if (currRow < MAX_SIZE - 1) executionStack.emplace(currRow + 1, currCol);
-            if (currCol > 0) executionStack.emplace(currRow, currCol - 1);
-            if (currCol < MAX_SIZE - 1) executionStack.emplace(currRow, currCol + 1);
+            if (currRow > 0) drawingQueue.emplace(currRow - 1, currCol);
+            if (currRow < MAX_SIZE - 1) drawingQueue.emplace(currRow + 1, currCol);
+            if (currCol > 0) drawingQueue.emplace(currRow, currCol - 1);
+            if (currCol < MAX_SIZE - 1) drawingQueue.emplace(currRow, currCol + 1);
         }
     }
 }
