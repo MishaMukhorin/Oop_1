@@ -13,19 +13,21 @@
 #include <cstdio>
 #include <cstring>
 #include <chrono>
+#include <optional>
 
 const char EMPTY_CELL = ' ';
 const char BORDER_CELL = '#';
-const char START_CELL = '0';
+const char START_CELL = 'O';
 const char FILLED_CELL = '.';
 const int MAX_SIZE = 100;
 
-using map = std::vector<std::vector<char>>;
+//done type Map
+using Map = std::vector<std::vector<char>>;
 
-bool ReadInputFile(const char *fileName, map& image);
-bool WriteOutputFile(const std::string& filename, const map& image);
+std::optional<Map> ReadInputFile(const char *fileName, Map& image);
+bool WriteOutputFile(const std::string& filename, const Map& image);
 
-void FillImage(map& image);
-bool ReadFillOut(const char* inputFileName, const std::string& outputFileName);
+void FillImage(Map& image);
+bool FillFiles(const char* inputFileName, const std::string& outputFileName);
 
 #endif //OOP_1_FILL_H

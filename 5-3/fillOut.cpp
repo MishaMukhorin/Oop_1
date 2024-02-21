@@ -13,5 +13,5 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    return !ReadFillOut(argv[1], argv[2]);
+    return !FillFiles(argv[1], argv[2]);
 }

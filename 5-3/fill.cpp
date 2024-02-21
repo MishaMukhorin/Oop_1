@@ -6,8 +6,9 @@
 
 using namespace std;
 
-bool ReadInputFile(const char *fileName, map& image)
+optional<Map> ReadInputFile(const char *fileName)
 {
+    Map image (MAX_SIZE, std::vector<char>(MAX_SIZE, EMPTY_CELL));
     FILE *inputFile;
     int symbol;
 
@@ -15,14 +16,14 @@ bool ReadInputFile(const char *fileName, map& image)
 
     if (inputFile == nullptr)
     {
-        return false;
+        return nullopt;
     }
     int row = 0, col = 0;
     while (true)
     {
         symbol = fgetc(inputFile);
-        if (symbol == EOF) break;
-        if (symbol == '\n')
+        if (symbol == EOF or row >= MAX_SIZE - 1) break;
+        if (symbol == '\n' or col >= MAX_SIZE - 1)
         {
             row++;
             col = 0;
@@ -32,10 +33,10 @@ bool ReadInputFile(const char *fileName, map& image)
         col++;
     }
     fclose(inputFile);
-    return true;
+    return image;
 }
 
-bool WriteOutputFile(const string& filename, const map& image)
+bool WriteOutputFile(const string& filename, const Map& image)
 {
     ofstream outputFile(filename);
     if (outputFile.is_open())
@@ -54,32 +55,51 @@ bool WriteOutputFile(const string& filename, const map& image)
     return false;
 }
 
-void FillContour(map& image, int row, int col)
+
+//done rename IsFillable
+bool IsFillable(const Map& image, int row, int col)
 {
-    queue<pair<int, int>> drawingQueue;
-
-    if (row > 0) drawingQueue.emplace(row - 1, col);
-    if (row < MAX_SIZE - 1) drawingQueue.emplace(row + 1, col);
-    if (col > 0) drawingQueue.emplace(row, col - 1);
-    if (col < MAX_SIZE - 1) drawingQueue.emplace(row, col + 1);
-
-    while (!drawingQueue.empty())
+    // fixed выход за границы
+    if ((row >= 0) and (col >= 0) and (row < MAX_SIZE) and (col < MAX_SIZE))
     {
-        auto [currRow, currCol] = drawingQueue.front();
-
-        drawingQueue.pop();
-        if (image[currRow][currCol] == EMPTY_CELL)
-        {
-            image[currRow][currCol] = FILLED_CELL;
-            if (currRow > 0) drawingQueue.emplace(currRow - 1, currCol);
-            if (currRow < MAX_SIZE - 1) drawingQueue.emplace(currRow + 1, currCol);
-            if (currCol > 0) drawingQueue.emplace(currRow, currCol - 1);
-            if (currCol < MAX_SIZE - 1) drawingQueue.emplace(currRow, currCol + 1);
-        }
+        return (image[row][col] == EMPTY_CELL);
+    }
+    else
+    {
+        return false;
     }
 }
 
-void FillImage(map& image) {
+void FillCellsAround(const Map& image, stack<pair<int, int>>& drawingStack, int row, int col)
+{
+     auto enstackCell = [&image, &drawingStack](int r, int c)
+             {
+                 if (IsFillable(image, r, c)) drawingStack.emplace(r, c);
+             };
+
+     enstackCell(row - 1, col);
+     enstackCell(row + 1, col);
+     enstackCell(row, col - 1);
+     enstackCell(row, col + 1);
+}
+
+void FillContour(Map& image, int row, int col)
+{
+    stack<pair<int, int>> drawingStack;
+
+    //done устранить дублирование
+    FillCellsAround(image, drawingStack, row, col);
+
+    while (!drawingStack.empty())
+    {
+        auto [currRow, currCol] = drawingStack.top();
+        drawingStack.pop();
+        image[currRow][currCol] = FILLED_CELL;
+        FillCellsAround(image, drawingStack, currRow, currCol);
+    }
+}
+
+void FillImage(Map& image) {
     for (int row = 0; (row < image.size() and row < MAX_SIZE); row++)
     {
         for (int col = 0; (col < image[row].size() and col < MAX_SIZE); col++)
@@ -93,20 +113,20 @@ void FillImage(map& image) {
 }
 
 
-bool ReadFillOut(const char* inputFileName, const std::string& outputFileName)
+//done FillFiles
+bool FillFiles(const char* inputFileName, const std::string& outputFileName)
 {
-    map image (MAX_SIZE, std::vector<char>(MAX_SIZE));
+    //done optional or ex
+    //done передать заполняемое значение
+    optional<Map> optImage = ReadInputFile(inputFileName) ;
 
-    for (auto& row : image) {
-        std::fill(row.begin(), row.end(), EMPTY_CELL);
-    }
-
-    if (!ReadInputFile(inputFileName, image))
+    if (!optImage)
     {
         cout << "Error opening input file - " << inputFileName <<  endl;
         return false;
     }
 
+    Map image = optImage.value();
     FillImage(image);
 
     if (!WriteOutputFile(outputFileName, image))
